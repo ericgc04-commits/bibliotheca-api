@@ -1,0 +1,10 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Allow requests to actual files/directories through
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything else to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
