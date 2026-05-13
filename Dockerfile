@@ -1,25 +1,24 @@
 FROM php:8.2-apache
 
-# Install PDO MySQL extension — this fixes "could not find driver"
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+# Install PDO MySQL extension
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Enable Apache mod_rewrite for .htaccess URL routing
+# Enable mod_rewrite for .htaccess routing
 RUN a2enmod rewrite
 
-# Configure Apache to allow .htaccess overrides
-RUN echo '<Directory /var/www/html>\n\
-    Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-</Directory>' >> /etc/apache2/apache2.conf
+# Allow .htaccess overrides using a separate config file (avoids MPM conflict)
+RUN { \
+    echo '<Directory /var/www/html>'; \
+    echo '    AllowOverride All'; \
+    echo '    Require all granted'; \
+    echo '</Directory>'; \
+} > /etc/apache2/conf-available/bibliotheca.conf \
+&& a2enconf bibliotheca
 
-# Copy all API files to the web root
+# Copy all API files to Apache web root
 COPY . /var/www/html/
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Fix permissions
+RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
-
-CMD ["apache2-foreground"]
